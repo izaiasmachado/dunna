@@ -1,2 +1,2 @@
 # dunna
-A online card game.
+An online card game.

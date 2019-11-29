@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dunna Card Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+</head>
+
+<body>
+    <div id="login-container">
+        <h1>Dunna</h1>
+        <p>An online card game!</p>
+        <form id="name-form">
+            <input id="name-input" type="text" placeholder="Type your name here."
+                maxlength="10"><br>
+            <input id="join-button" type="submit" value="Join">
+        </form>
+    </div>
+
+    <script>
+        const socket = io()
+    </script>
+</body>
+
+</html>
