@@ -3,8 +3,9 @@ const server = require('http').Server(app)
 const io = require('socket.io')(server)
 
 const { PORT } = process.env
-const page = (__dirname + '/public/index.html')
 const socket = require('./socket')(io)
+const routes = require('./routes')
 
-app.get('/', (req, res) => res.sendFile(page))
+app.use(routes)
+
 server.listen(PORT, () => console.log(`Running on http://localhost:${PORT}`))
