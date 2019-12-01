@@ -6,7 +6,7 @@ if (localStorage.name) {
     nameInput.value = localStorage.name
 }
 
-nameInput.addEventListener('change', storageName);
+nameInput.addEventListener('change', storageName)
 joinButton.addEventListener('click', submitNameForm)
 
 function storageName(e) {
