@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dunna Card Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+    <link rel="stylesheet" type="text/css" href="style">
 </head>
 
 <body>
@@ -14,15 +15,18 @@
         <h1>Dunna</h1>
         <p>An online card game!</p>
         <form id="name-form">
-            <input id="name-input" type="text" placeholder="Type your name here."
-                maxlength="10"><br>
+            <input id="name-input" type="text" placeholder="Type your name here." maxlength="10"><br>
             <input id="join-button" type="submit" value="Join">
         </form>
     </div>
-
-    <script>
-        const socket = io()
-    </script>
+    <div id="max-limit" hidden>
+        <h1>This room has already reached the max limit!</h1>
+    </div>
+    <div id="invalid-room" hidden>
+        <h1>Sorry but you've reached an invalid room :/</h1>
+        <p><a href="/">Click here</a> to be redirected</p>
+    </div>
+    <script type="text/javascript" src="script"></script>
 </body>
 
 </html>
