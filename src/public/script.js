@@ -7,7 +7,6 @@ nameInput.addEventListener('change', storageName)
 joinButton.addEventListener('click', submitNameForm)
 
 function pageInitialization() {
-    console.log('asdsdamksadmk')
     socket.emit('ask-for-room', getCurrentRoom())
 
     if (localStorage.name)
