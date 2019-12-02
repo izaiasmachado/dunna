@@ -2,12 +2,23 @@ const socket = io()
 const nameInput = document.getElementById('name-input')
 const joinButton = document.getElementById('join-button')
 
-if (localStorage.name) {
-    nameInput.value = localStorage.name
-}
-
+window.addEventListener('load', pageInitialization)
 nameInput.addEventListener('change', storageName)
 joinButton.addEventListener('click', submitNameForm)
+
+function pageInitialization() {
+    console.log('asdsdamksadmk')
+    socket.emit('ask-for-room', getCurrentRoom())
+
+    if (localStorage.name)
+        nameInput.value = localStorage.name
+}
+
+function getCurrentRoom() {
+    const room = window.location.href.split('/')[3]
+
+    return room
+}
 
 function storageName(e) {
     e.preventDefault()
@@ -36,6 +47,10 @@ function submitNameForm(e) {
 
 socket.on('redirect', id => {
     window.history.pushState(false, false, `/${id}`) 
+})
+
+socket.on('show-invalid-room-message', () => {
+    document.getElementById('invalid-room').style.display = 'block'
 })
 
 socket.on('show-login-container', () => {

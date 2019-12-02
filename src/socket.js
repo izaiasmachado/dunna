@@ -4,6 +4,13 @@ module.exports = (io) => {
     const rooms = []
 
     io.on('connection', socket => {
+        socket.on('ask-for-room', RoomId => {
+            if (!rooms[RoomId] && RoomId !== '') {
+                socket.emit('show-invalid-room-message')
+                socket.emit('hide-login-container')
+            }
+        })
+
         socket.on('game-connect', data => {
             socket.emit('show-login-container')
             socket.emit('hide-max-limit')
@@ -32,8 +39,6 @@ module.exports = (io) => {
             }
 
             socket.emit('hide-login-container')
-
-            console.log(rooms)
         })
 
         socket.on('disconnect', () => {
