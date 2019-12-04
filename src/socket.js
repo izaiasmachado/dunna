@@ -28,6 +28,7 @@ module.exports = (io) => {
             }
 
             rooms[id].addPlayer(name, socket.id)
+            
             const clientsCount = Object.keys(rooms[id].players).length
 
             if (playerLimit < clientsCount) {
@@ -42,9 +43,9 @@ module.exports = (io) => {
         })
 
         socket.on('disconnect', () => {
-            for (const RoomId in rooms.length) {
-                if (rooms[RoomId].players[socket.id]) {
-                    delete rooms[RoomId].players[socket.id]
+            for (let i = 0; i < rooms.length; i++) {
+                if (rooms[i] !== undefined) {
+                    rooms[i].removePlayer(socket.id)
                 }
             }
         })
