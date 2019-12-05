@@ -6,6 +6,7 @@ class Room {
         this.topCard = this.chooseTopCard()
         this.currentPlayer = 0
         this.orientation = '+'
+        this.winner = false
     }
 
     addPlayer(name, SocketId) {
@@ -81,10 +82,24 @@ class Room {
     nextPlayer() {
         const players = Object.keys(this.players)
         const lastPosition = players.length - 1
-        
+
         this.currentPlayer = (this.orientation == '+') ? this.currentPlayer + 1 : this.currentPlayer - 1
         this.currentPlayer = (this.currentPlayer > lastPosition) ? 0 : this.currentPlayer
         this.currentPlayer = (this.currentPlayer < 0) ? lastPosition : this.currentPlayer
+    }
+
+    restartGame() {
+        this.winner = false
+
+        const players = Object.keys(this.players)
+        const size = players.length
+
+        for (let i = 0; i < size; i++) {
+            const playerId = players[i]
+
+            this.players[playerId].cards = []
+            this.players[playerId].cards = this.dealCards()
+        }
     }
 }
 
