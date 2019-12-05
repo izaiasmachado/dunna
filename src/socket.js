@@ -71,14 +71,47 @@ module.exports = (io) => {
             // Send game status
         })
 
+        socket.on('choose-wild-color', data => {
+            const colors = ['blue', 'red', 'yellow', 'green']
+            const { cardPosition } = data
+            const { suit } = data
+            let wrongColor = true
+
+            const roomId = findPlayerRoom(socket.id)
+
+            if (!roomId) {
+                return // Unexpected ERROR
+            }
+
+            const room = rooms[roomId]
+            const player = room.players[socket.id]
+            const card = player.cards[cardPosition]
+
+            for (let i = 0; i < 4; i++) {
+                if (suit == colors[i]) {
+                    wrongColor = false
+                }
+            }
+
+            if (!card || !card.wild || wrongColor || !suit) {
+                return // Something went wrong, try again
+            }
+
+            rooms[roomId].players[socket.id].cards[cardPosition].suit = suit
+            
+            // Hide wild buttons
+            return makePlay(cardPosition)
+        })
+
+
         socket.on('send-play', cardPosition => {
             makePlay(cardPosition)
         })
-        
+
         function makePlay(cardPosition) {
             const roomId = findPlayerRoom(socket.id)
             const room = rooms[roomId]
-            
+
             if (!room) {
                 return // Unexpected ERROR
             }
@@ -128,7 +161,7 @@ module.exports = (io) => {
 
                 for (let i = 0; i < quantity; i++) {
                     const playerId = players[position]
-                    const card = drawCard()
+                    const card = rooms[roomId].drawCard()
 
                     if (!card) {
                         return // Unexpected ERROR
