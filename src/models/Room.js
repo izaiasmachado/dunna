@@ -31,7 +31,10 @@ class Room {
         const card = this.drawCard()
         const invalid = (card.wild || card.value == 'draw' || card.value == 'skip' || card.value == 'reverse')
 
-        return (!card) ? false : (invalid) ? this.chooseTopCard() : card
+        return (!card) ? false : (invalid) ? () => {
+            this.returnCard(card)
+            this.chooseTopCard()
+        } : card
     }
 
     drawCard() {
@@ -89,17 +92,21 @@ class Room {
     }
 
     restartGame() {
-        this.winner = false
-
         const players = Object.keys(this.players)
         const size = players.length
-
+                
         for (let i = 0; i < size; i++) {
             const playerId = players[i]
 
-            this.players[playerId].cards = []
+            this.returnCards(this.players[playerId].cards)
             this.players[playerId].cards = this.dealCards()
         }
+        
+        this.returnCard(this.topCard)
+        this.topCard = this.chooseTopCard()
+        this.currentPlayer = 0
+        this.orientation = '+'
+        this.winner = false
     }
 }
 
