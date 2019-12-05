@@ -4,8 +4,8 @@ module.exports = (io) => {
     const rooms = []
 
     io.on('connection', socket => {
-        socket.on('ask-for-room', RoomId => {
-            if (!rooms[RoomId] && RoomId !== '') {
+        socket.on('ask-for-room', roomId => {
+            if (!rooms[roomId] && roomId !== '') {
                 socket.emit('show-invalid-room-message')
                 socket.emit('hide-login-container')
             }
@@ -18,7 +18,7 @@ module.exports = (io) => {
             let { name, id } = data
 
             if (!name) {
-                return socket.emit('redirect', '')
+                return // Type your name
             }
 
             if (!rooms[id]) {
@@ -40,6 +40,7 @@ module.exports = (io) => {
             }
 
             socket.emit('hide-login-container')
+            // Send game status
         })
 
         socket.on('disconnect', () => {
@@ -52,7 +53,7 @@ module.exports = (io) => {
 
         socket.on('draw-card', () => {
             const roomId = findPlayerRoom(socket.id)
-            
+
             if (!roomId) {
                 return // Unexpected ERROR
             }
@@ -66,7 +67,87 @@ module.exports = (io) => {
 
             const card = rooms[roomId].drawCard()
             rooms[roomId].players[socket.id].cards.push(card)
+
+            // Send game status
         })
+
+        socket.on('send-play', cardPosition => {
+            makePlay(cardPosition)
+        })
+        
+        function makePlay(cardPosition) {
+            const roomId = findPlayerRoom(socket.id)
+            const room = rooms[roomId]
+            
+            if (!room) {
+                return // Unexpected ERROR
+            }
+
+            const player = room.players[socket.id]
+
+            if (!player) {
+                return // Unexpected ERROR
+            }
+
+            const playerTurn = verifyTurn(room, socket.id)
+            const card = player.cards[cardPosition]
+
+            if (!playerTurn) {
+                return // Wait for your turn to play
+            }
+
+            if (card.wild && !card.suit) {
+                return  // Show wild buttons
+            }
+
+            const normalCondition = (((room.topCard.suit == card.suit) || (room.topCard.value == card.value)) && !card.wild)
+            const wildCondition = ((card.wild && card.suit) || (room.topCard.wild && (room.topCard.suit == card.suit)))
+
+            if (!normalCondition && !wildCondition) {
+                return // Choose a valid card
+            }
+
+            rooms[roomId].players[socket.id].cards.splice(cardPosition, 1)
+            rooms[roomId].returnCard(rooms[roomId].topCard)
+            rooms[roomId].topCard = card
+
+            gamePattern(roomId)
+            // Send game status
+        }
+
+        function gamePattern(roomId) {
+            const room = rooms[roomId]
+            const { topCard } = rooms[roomId]
+
+            if (topCard.value == 'draw') {
+                rooms[roomId].nextPlayer()
+
+                const quantity = game.topCard.quantity
+                const position = rooms[roomId].currentPlayer
+                const players = Object.keys(room.players)
+
+                for (let i = 0; i < quantity; i++) {
+                    const playerId = players[position]
+                    const card = drawCard()
+
+                    if (!card) {
+                        return // Unexpected ERROR
+                    }
+
+                    rooms[roomId].player[playerId].push(card)
+                }
+            }
+
+            if (topCard.value == 'reverse') {
+                rooms[roomId].reverse()
+            }
+
+            if (topCard.value == 'skip') {
+                rooms[roomId].nextPlayer()
+            }
+
+            rooms[roomId].nextPlayer()
+        }
     })
 
     function makeId() {
