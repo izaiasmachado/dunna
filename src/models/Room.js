@@ -4,6 +4,8 @@ class Room {
     constructor() {
         this.players = []
         this.topCard = this.chooseTopCard()
+        this.currentPlayer = 0
+        this.orientation = '+'
     }
 
     addPlayer(name, SocketId) {
@@ -70,6 +72,19 @@ class Room {
         for (let i = 0; i < size; i++) {
             this.returnCard(cards[i])
         }
+    }
+
+    reverse() {
+        this.orientation = (this.orientation == '+') ? '-' : '+'
+    }
+
+    nextPlayer() {
+        const players = Object.keys(this.players)
+        const lastPosition = players.length - 1
+        
+        this.currentPlayer = (this.orientation == '+') ? this.currentPlayer + 1 : this.currentPlayer - 1
+        this.currentPlayer = (this.currentPlayer > lastPosition) ? 0 : this.currentPlayer
+        this.currentPlayer = (this.currentPlayer < 0) ? lastPosition : this.currentPlayer
     }
 }
 
