@@ -9,14 +9,15 @@ joinButton.addEventListener('click', submitNameForm)
 function pageInitialization() {
     socket.emit('ask-for-room', getCurrentRoom())
 
-    if (localStorage.name)
+    if (localStorage.name) {
         nameInput.value = localStorage.name
+    }
 }
 
 function getCurrentRoom() {
-    const room = window.location.href.split('/')[3]
+    const roomId = window.location.href.split('/')[3]
 
-    return room
+    return roomId
 }
 
 function storageName(e) {
@@ -44,8 +45,10 @@ function submitNameForm(e) {
     socket.emit('game-connect', data)
 }
 
+socket.on('server-alert', data => alert(data))
+
 socket.on('redirect', id => {
-    window.history.pushState(false, false, `/${id}`) 
+    window.history.pushState(false, false, `/${id}`)
 })
 
 socket.on('show-invalid-room-message', () => {
