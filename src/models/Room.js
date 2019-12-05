@@ -7,12 +7,11 @@ class Room {
     }
 
     addPlayer(name, SocketId) {
-        if (this.players[SocketId])
-            return
-
-        this.players[SocketId] = {
-            name,
-            cards: this.dealCards()
+        if (!this.players[SocketId]) {
+            this.players[SocketId] = {
+                name,
+                cards: this.dealCards()
+            }
         }
     }
 
@@ -49,25 +48,20 @@ class Room {
         while (i < 7) {
             const card = this.drawCard()
 
-            if (!card) {
-                return false
+            if (card) {
+                cards.push(card)
+                i++
             }
-
-            cards.push(card)
-
-            i++
         }
 
         return cards
     }
 
     returnCard(card) {
-        if (!card) {
-            return false
+        if (card) {
+            card.suit = (card.wild) ? undefined : card.suit
+            deck.push(card)
         }
-
-        card.suit = (card.wild) ? undefined : card.suit
-        deck.push(card)
     }
 
     returnCards(cards) {
