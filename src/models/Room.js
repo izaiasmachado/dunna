@@ -18,9 +18,11 @@ class Room {
 
     removePlayer(SocketId) {
         const player = this.players[SocketId]
-        this.returnCards(player.cards)
 
-        delete this.players[SocketId]
+        if (player) {
+            this.returnCards(player.cards)
+            delete this.players[SocketId]
+        }
     }
 
     chooseTopCard() {
@@ -60,10 +62,12 @@ class Room {
     }
 
     returnCard(card) {
-        deck.push(card)
+        if (!card) {
+            return false
+        }
 
-        if (card.wild)
-            card.suit = undefined
+        card.suit = (card.wild) ? undefined : card.suit
+        deck.push(card)
     }
 
     returnCards(cards) {
