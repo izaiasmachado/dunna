@@ -40,6 +40,7 @@ module.exports = (io) => {
             }
 
             socket.emit('hide-login-container')
+            socket.emit('show-game-container')
             // Send game status
         })
 
