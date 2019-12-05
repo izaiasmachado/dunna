@@ -28,7 +28,7 @@ module.exports = (io) => {
             }
 
             rooms[id].addPlayer(name, socket.id)
-            
+
             const clientsCount = Object.keys(rooms[id].players).length
 
             if (playerLimit < clientsCount) {
@@ -43,20 +43,57 @@ module.exports = (io) => {
         })
 
         socket.on('disconnect', () => {
-            for (let i = 0; i < rooms.length; i++) {
-                if (rooms[i] !== undefined) {
-                    rooms[i].removePlayer(socket.id)
-                }
+            const roomId = findPlayerRoom(socket.id)
+
+            if (roomId) {
+                rooms[roomId].removePlayer(socket.id)
             }
+        })
+
+        socket.on('draw-card', () => {
+            const roomId = findPlayerRoom(socket.id)
+            
+            if (!roomId) {
+                return // Unexpected ERROR
+            }
+
+            const room = rooms[roomId]
+            const playerTurn = verifyTurn(room, socket.id)
+
+            if (!playerTurn) {
+                return // Wait for your turn
+            }
+
+            const card = rooms[roomId].drawCard()
+            rooms[roomId].players[socket.id].cards.push(card)
         })
     })
 
     function makeId() {
         let result = ''
 
-        for (let i = 0; i < 5; i++)
-            result += Math.floor(Math.random() * 10);
+        for (let i = 0; i < 5; i++) {
+            result += Math.floor(Math.random() * 10)
+        }
 
         return result
+    }
+
+    function findPlayerRoom(SocketId) {
+        for (let i = 0; i < rooms.length; i++) {
+            if (rooms[i] && rooms[i].players[SocketId]) {
+                return i
+            }
+        }
+
+        return false
+    }
+
+    function verifyTurn(room, SocketId) {
+        const players = Object.keys(room.players)
+        const currentPosition = room.currentPlayer
+        const playerPosition = players.indexOf(SocketId)
+
+        return (playerPosition == currentPosition)
     }
 }
