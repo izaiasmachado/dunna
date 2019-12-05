@@ -7,7 +7,7 @@ const exitButton = document.getElementById('exit-button')
 window.addEventListener('load', pageInitialization)
 nameInput.addEventListener('change', storageName)
 joinButton.addEventListener('click', submitNameForm)
-drawButton.addEventListener('click', () => socket.emit('draw-from-deck'))
+drawButton.addEventListener('click', () => socket.emit('draw-card'))
 exitButton.addEventListener('click', () => {
     window.location.href = window.location.origin
 })
@@ -76,6 +76,47 @@ socket.on('show-wild-buttons', data => {
         newButton.innerText = colors[i]
         wildButtonsContent.appendChild(newButton)
     }
+})
+
+socket.on('player-state', data => {
+    const { cards } = data.player
+    const size = cards.length
+
+    let hand = document.getElementById('game-hand')
+    hand.innerHTML = ''
+
+    for (let i = 0; i < size; i++) {
+        let newCard = document.createElement("button")
+
+        newCard.onclick = () => {
+            socket.emit('send-play', i)
+        }
+
+        newCard.innerHTML = `<h3>${cards[i].name}</h3>`
+
+        hand.appendChild(newCard)
+    }
+})
+
+socket.on('public-info', data => {
+    const { topCard, currentPlayer, players } = data
+    const topCardContent = document.getElementById('top-card')
+
+    topCardContent.innerHTML = ''
+    topCardContent.innerHTML = `<h1>${topCard.name}</h1>`
+    topCardContent.style.color = topCard.suit
+
+    const playersContent = document.getElementById('players-container')
+    playersContent.innerHTML = ''
+
+    for (let i = 0; i < players.length; i++) {
+        const { name, cardQuantity } = players[i]
+
+        playersContent.innerHTML += `<p>${name}: ${cardQuantity}</p></br>`
+    }
+
+    const actionContent = document.getElementById('action-container')
+    actionContent.innerText = `It's ${currentPlayer.name}'s turn.`
 })
 
 socket.on('hide-wild-buttons', () => {
