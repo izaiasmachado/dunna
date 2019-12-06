@@ -1,7 +1,8 @@
-const deck = require('../deck.json')
+const newDeck = require('../deck.js')
 
 class Room {
     constructor() {
+        this.deck = newDeck()
         this.players = []
         this.topCard = this.chooseTopCard()
         this.currentPlayer = 0
@@ -38,13 +39,13 @@ class Room {
     }
 
     drawCard() {
-        const size = deck.length
+        const size = this.deck.length
         const temp = Math.floor(Math.random() * size)
-        const card = deck[temp]
+        const card = this.deck[temp]
 
-        deck.splice(temp, 1)
+        this.deck.splice(temp, 1)
 
-        return (card) ? card : (deck == 0) ? false : this.drawCard()
+        return (card) ? card : (this.deck == 0) ? false : this.drawCard()
     }
 
     dealCards() {
@@ -66,7 +67,7 @@ class Room {
     returnCard(card) {
         if (card) {
             card.suit = (card.wild) ? undefined : card.suit
-            deck.push(card)
+            this.deck.push(card)
         }
     }
 
@@ -94,15 +95,16 @@ class Room {
     restartGame() {
         const players = Object.keys(this.players)
         const size = players.length
+        this.returnCard(this.topCard)
                 
         for (let i = 0; i < size; i++) {
             const playerId = players[i]
-
+            
             this.returnCards(this.players[playerId].cards)
             this.players[playerId].cards = this.dealCards()
         }
         
-        this.returnCard(this.topCard)
+        this.deck = newDeck()
         this.topCard = this.chooseTopCard()
         this.currentPlayer = 0
         this.orientation = '+'
