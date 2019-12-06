@@ -68,6 +68,11 @@ module.exports = (io) => {
             }
 
             const card = rooms[roomId].drawCard()
+
+            if (!card) {
+                return socket.emit('server-alert', 'Unexpected error, try again!')
+            }
+
             rooms[roomId].players[socket.id].cards.push(card)
 
             sendGameStatus(rooms[roomId])

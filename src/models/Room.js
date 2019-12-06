@@ -4,7 +4,7 @@ class Room {
     constructor() {
         this.deck = newDeck()
         this.players = []
-        this.topCard = this.chooseTopCard()
+        this.chooseTopCard()
         this.currentPlayer = 0
         this.orientation = '+'
         this.winner = false
@@ -32,10 +32,12 @@ class Room {
         const card = this.drawCard()
         const invalid = (card.wild || card.value == 'draw' || card.value == 'skip' || card.value == 'reverse')
 
-        return (!card) ? false : (invalid) ? () => {
+        if (invalid) {
             this.returnCard(card)
-            this.chooseTopCard()
-        } : card
+            return this.chooseTopCard()
+        } else if (card) {
+            this.topCard = card
+        }
     }
 
     drawCard() {
@@ -43,9 +45,16 @@ class Room {
         const temp = Math.floor(Math.random() * size)
         const card = this.deck[temp]
 
-        this.deck.splice(temp, 1)
+        if (card) {
+            this.deck.splice(temp, 1)
+            return card
+        }
 
-        return (card) ? card : (this.deck == 0) ? false : this.drawCard()
+        if (this.deck.length == 0) {
+            return false
+        }
+        
+        this.drawCard()
     }
 
     dealCards() {
