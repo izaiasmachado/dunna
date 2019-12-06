@@ -164,8 +164,10 @@ module.exports = (io) => {
                 const position = rooms[roomId].currentPlayer
                 const players = Object.keys(room.players)
 
-                for (let i = 0; i < players.length; i++) {
-                    const playerId = players[position]
+                const playerId = players[position]
+                const { quantity } = topCard
+
+                for (let i = 0; i < quantity; i++) {
                     const card = rooms[roomId].drawCard()
 
                     if (!card) {
@@ -185,7 +187,6 @@ module.exports = (io) => {
             }
 
             rooms[roomId].nextPlayer()
-            sendGameStatus(rooms[roomId])
         }
 
         function sendGameStatus(room) {
