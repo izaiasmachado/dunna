@@ -18,7 +18,7 @@ module.exports = (io) => {
             let { name, id } = data
 
             if (!name) {
-                return // Type your name
+                return socket.emit('server-alert', 'Type your name!')
             }
 
             if (!rooms[id]) {
@@ -40,7 +40,9 @@ module.exports = (io) => {
             }
 
             socket.emit('hide-login-container')
-            // Send game status
+            socket.emit('show-game-container')
+
+            sendGameStatus(rooms[id])
         })
 
         socket.on('disconnect', () => {
@@ -55,20 +57,20 @@ module.exports = (io) => {
             const roomId = findPlayerRoom(socket.id)
 
             if (!roomId) {
-                return // Unexpected ERROR
+                return socket.emit('server-alert', 'Unexpected error, try again!')
             }
 
             const room = rooms[roomId]
             const playerTurn = verifyTurn(room, socket.id)
 
             if (!playerTurn) {
-                return // Wait for your turn
+                return socket.emit('server-alert', 'Wait for your turn to play!')
             }
 
             const card = rooms[roomId].drawCard()
             rooms[roomId].players[socket.id].cards.push(card)
 
-            // Send game status
+            sendGameStatus(rooms[roomId])
         })
 
         socket.on('choose-wild-color', data => {
@@ -78,12 +80,12 @@ module.exports = (io) => {
             let wrongColor = true
 
             const roomId = findPlayerRoom(socket.id)
+            const room = rooms[roomId]
 
-            if (!roomId) {
-                return // Unexpected ERROR
+            if (!room) {
+                return socket.emit('server-alert', 'Unexpected error, try again!')
             }
 
-            const room = rooms[roomId]
             const player = room.players[socket.id]
             const card = player.cards[cardPosition]
 
@@ -93,16 +95,15 @@ module.exports = (io) => {
                 }
             }
 
-            if (!card || !card.wild || wrongColor || !suit) {
-                return // Something went wrong, try again
+            if (!card.wild || wrongColor || !suit) {
+                return socket.emit('server-alert', 'Unexpected error, try again!')
             }
 
             rooms[roomId].players[socket.id].cards[cardPosition].suit = suit
-            
-            // Hide wild buttons
+
+            socket.emit('hide-wild-buttons')
             return makePlay(cardPosition)
         })
-
 
         socket.on('send-play', cardPosition => {
             makePlay(cardPosition)
@@ -113,31 +114,31 @@ module.exports = (io) => {
             const room = rooms[roomId]
 
             if (!room) {
-                return // Unexpected ERROR
+                return socket.emit('server-alert', 'Unexpected error, try again!')
             }
 
             const player = room.players[socket.id]
 
-            if (!player) {
-                return // Unexpected ERROR
+            if (!player || !player.cards[cardPosition]) {
+                return socket.emit('server-alert', 'Unexpected error, try again!')
             }
 
             const playerTurn = verifyTurn(room, socket.id)
             const card = player.cards[cardPosition]
 
             if (!playerTurn) {
-                return // Wait for your turn to play
+                return socket.emit('server-alert', 'Wait for your turn to play!')
             }
 
             if (card.wild && !card.suit) {
-                return  // Show wild buttons
+                return socket.emit('show-wild-buttons', cardPosition)
             }
 
             const normalCondition = (((room.topCard.suit == card.suit) || (room.topCard.value == card.value)) && !card.wild)
             const wildCondition = ((card.wild && card.suit) || (room.topCard.wild && (room.topCard.suit == card.suit)))
 
             if (!normalCondition && !wildCondition) {
-                return // Choose a valid card
+                return socket.emit('server-alert', 'Choose a valid card!')
             }
 
             rooms[roomId].players[socket.id].cards.splice(cardPosition, 1)
@@ -145,7 +146,7 @@ module.exports = (io) => {
             rooms[roomId].topCard = card
 
             gamePattern(roomId)
-            // Send game status
+            sendGameStatus(rooms[roomId])
         }
 
         function gamePattern(roomId) {
@@ -155,19 +156,18 @@ module.exports = (io) => {
             if (topCard.value == 'draw') {
                 rooms[roomId].nextPlayer()
 
-                const quantity = game.topCard.quantity
                 const position = rooms[roomId].currentPlayer
                 const players = Object.keys(room.players)
 
-                for (let i = 0; i < quantity; i++) {
+                for (let i = 0; i < players.length; i++) {
                     const playerId = players[position]
                     const card = rooms[roomId].drawCard()
 
                     if (!card) {
-                        return // Unexpected ERROR
+                        return socket.emit('server-alert', 'Unexpected error, try again!')
                     }
 
-                    rooms[roomId].player[playerId].push(card)
+                    rooms[roomId].players[playerId].cards.push(card)
                 }
             }
 
@@ -180,6 +180,45 @@ module.exports = (io) => {
             }
 
             rooms[roomId].nextPlayer()
+            sendGameStatus(rooms[roomId])
+        }
+
+        function sendGameStatus(room) {
+            if (!room) {
+                return false
+            }
+
+            const publicInfo = {
+                players: [],
+                topCard: room.topCard
+            }
+
+            const players = Object.keys(room.players)
+
+            for (let i = 0; i < players.length; i++) {
+                const socket = players[i]
+                const player = room.players[socket]
+
+                publicInfo.players.push({
+                    id: socket,
+                    name: player.name,
+                    cardQuantity: player.cards.length
+                })
+
+                io.to(socket).emit('player-state', { player })
+            }
+
+            const currentPlayerPosition = room.currentPlayer
+            const currentPlayerId = players[currentPlayerPosition]
+            const currentPlayer = room.players[currentPlayerId]
+
+            publicInfo.currentPlayer = {
+                id: currentPlayerId,
+                name: currentPlayer.name
+            }
+
+            socket.emit('public-info', publicInfo)
+            socket.broadcast.emit('public-info', publicInfo)
         }
     })
 
