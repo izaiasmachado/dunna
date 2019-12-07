@@ -104,17 +104,18 @@ class Room {
     restartGame() {
         const players = Object.keys(this.players)
         const size = players.length
-        this.returnCard(this.topCard)
-                
+
+        console.log(this.deck.length)
+        this.deck = newDeck()
+        console.log(this.deck.length)
+        this.topCard = this.chooseTopCard()
+        
         for (let i = 0; i < size; i++) {
             const playerId = players[i]
             
-            this.returnCards(this.players[playerId].cards)
             this.players[playerId].cards = this.dealCards()
         }
         
-        this.deck = newDeck()
-        this.topCard = this.chooseTopCard()
         this.currentPlayer = 0
         this.orientation = '+'
         this.winner = false
