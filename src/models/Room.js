@@ -105,9 +105,7 @@ class Room {
         const players = Object.keys(this.players)
         const size = players.length
 
-        console.log(this.deck.length)
         this.deck = newDeck()
-        console.log(this.deck.length)
         this.topCard = this.chooseTopCard()
         
         for (let i = 0; i < size; i++) {
