@@ -42,7 +42,7 @@ module.exports = (io) => {
             socket.emit('hide-login-container')
             socket.emit('show-game-container')
 
-            sendGameStatus(rooms[id])
+            sendGameStatus(id)
         })
 
         socket.on('disconnect', () => {
@@ -74,8 +74,9 @@ module.exports = (io) => {
             }
 
             rooms[roomId].players[socket.id].cards.push(card)
-
-            sendGameStatus(rooms[roomId])
+            rooms[roomId].nextPlayer()
+            
+            sendGameStatus(roomId)
         })
 
         socket.on('choose-wild-color', data => {
@@ -105,8 +106,8 @@ module.exports = (io) => {
             }
 
             rooms[roomId].players[socket.id].cards[cardPosition].suit = suit
-
             socket.emit('hide-wild-buttons')
+
             return makePlay(cardPosition)
         })
 
@@ -151,7 +152,7 @@ module.exports = (io) => {
             rooms[roomId].topCard = card
 
             gamePattern(roomId)
-            sendGameStatus(rooms[roomId])
+            sendGameStatus(roomId)
         }
 
         function gamePattern(roomId) {
@@ -189,7 +190,9 @@ module.exports = (io) => {
             rooms[roomId].nextPlayer()
         }
 
-        function sendGameStatus(room) {
+        function sendGameStatus(roomId) {
+            const room = rooms[roomId]
+
             if (!room) {
                 return false
             }
@@ -210,6 +213,17 @@ module.exports = (io) => {
                     name: player.name,
                     cardQuantity: player.cards.length
                 })
+
+                if (player.cards.length == 0) {
+                    rooms[roomId].winner = player
+                }
+
+                if (rooms[roomId].winner) {
+                    const { name } = rooms[roomId].winner
+
+                    rooms[roomId].restartGame()
+                    io.to(socket).emit('server-alert', `${name} won the game!`)
+                }
 
                 io.to(socket).emit('player-state', { player })
             }
