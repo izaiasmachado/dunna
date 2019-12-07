@@ -74,7 +74,8 @@ module.exports = (io) => {
             }
 
             rooms[roomId].players[socket.id].cards.push(card)
-
+            rooms[roomId].nextPlayer()
+            
             sendGameStatus(roomId)
         })
 
@@ -105,8 +106,8 @@ module.exports = (io) => {
             }
 
             rooms[roomId].players[socket.id].cards[cardPosition].suit = suit
-
             socket.emit('hide-wild-buttons')
+
             return makePlay(cardPosition)
         })
 
